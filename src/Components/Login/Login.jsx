@@ -1,103 +1,167 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
+
 import "./Login.css";
 
-export default function Login() {
+import { Link, useNavigate } from 'react-router-dom';
 
-    const [loginData, setLoginData] = useState({
-        email: "",
-        password: ""
+import { API_URL } from '../../config';
+
+const Login = () => {
+
+  const [password, setPassword] = useState("");
+
+  const [email, setEmail] = useState('');
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+
+    if (sessionStorage.getItem("auth-token")) {
+
+      navigate("/");
+    }
+
+  }, []);
+
+  const login = async (e) => {
+
+    e.preventDefault();
+
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+
+        email: email,
+
+        password: password,
+      }),
     });
 
-    const [errors, setErrors] = useState({});
+    const json = await res.json();
 
-    function handleChange(event) {
+    if (json.authtoken) {
 
-        const { name, value } = event.target;
+      sessionStorage.setItem('auth-token', json.authtoken);
 
-        setLoginData({
-            ...loginData,
-            [name]: value
-        });
-    }
+      sessionStorage.setItem('email', email);
 
-    function validate() {
+      navigate('/');
 
-        let newErrors = {};
+      window.location.reload();
 
-        if (!loginData.email.includes("@")) {
-            newErrors.email = "Enter valid email";
+    } else {
+
+      if (json.errors) {
+
+        for (const error of json.errors) {
+
+          alert(error.msg);
         }
 
-        if (loginData.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
-        }
+      } else {
 
-        return newErrors;
+        alert(json.error);
+      }
     }
+  };
 
-    function handleSubmit(event) {
+  return (
 
-        event.preventDefault();
+    <div>
 
-        const validationErrors = validate();
+      <div className="container">
 
-        if (Object.keys(validationErrors).length > 0) {
+        <div className="login-grid">
 
-            setErrors(validationErrors);
+          <div className="login-text">
 
-        } else {
+            <h2>Login</h2>
 
-            setErrors({});
-            alert("Login Successful");
+          </div>
 
-            console.log(loginData);
-        }
-    }
+          <div className="login-text">
 
-    return (
-        <div className="container">
+            Are you a new member?
 
-            <h1>Login</h1>
+            <span>
 
-            <form onSubmit={handleSubmit}>
+              <Link to="/signup" style={{ color: '#2190FF' }}>
 
-                <div className="form-group">
+                Sign Up Here
 
-                    <label>Email</label>
+              </Link>
 
-                    <input
-                        type="email"
-                        name="email"
-                        value={loginData.email}
-                        onChange={handleChange}
-                        className="form-control"
-                    />
+            </span>
 
-                    <p className="error">{errors.email}</p>
+          </div>
 
-                </div>
+          <br />
 
-                <div className="form-group">
+          <div className="login-form">
 
-                    <label>Password</label>
+            <form onSubmit={login}>
 
-                    <input
-                        type="password"
-                        name="password"
-                        value={loginData.password}
-                        onChange={handleChange}
-                        className="form-control"
-                    />
+              <div className="form-group">
 
-                    <p className="error">{errors.password}</p>
+                <label htmlFor="email">Email</label>
 
-                </div>
+                <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  name="email"
+                  id="email"
+                  className="form-control"
+                  placeholder="Enter your email"
+                />
 
-                <button type="submit" className="btn">
-                    Login
+              </div>
+
+              <div className="form-group">
+
+                <label htmlFor="password">Password</label>
+
+                <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  name="password"
+                  id="password"
+                  className="form-control"
+                  placeholder="Enter your password"
+                />
+
+              </div>
+
+              <div className="btn-group">
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                >
+
+                  Login
+
                 </button>
 
+              </div>
+
             </form>
+
+          </div>
+
         </div>
-    );
+
+      </div>
+
+    </div>
+  );
 }
+
+export default Login;

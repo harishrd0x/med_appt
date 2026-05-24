@@ -11,3 +11,15 @@
     color: black;
 
 }
+
+.username {
+    font-weight: bold;
+}
+
+.logout-btn {
+    padding: 5px 10px;
+    background-color: red;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
